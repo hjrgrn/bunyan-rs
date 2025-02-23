@@ -9,11 +9,6 @@
 <br />
 
 
-<div>
-<img src="https://raw.githubusercontent.com/hjrgrn/bunyan-rs/main/images/ConsoleBunyanOutput.png" />
-</div>
-<hr/>
-
 # Table of Contents
 0. [How to install](#how-to-install)
 1. [How to use](#how-to-use)
