@@ -3,7 +3,6 @@
  <strong>
    A Rust port of <a href="https://github.com/trentm/node-bunyan" target="_blank">node-bunyan</a>, forked from <a href="https://github.com/LukeMathWalker/bunyan" target="_blank">bunyan</a>.
  </strong>
- <p>Compared to the original <a href="https://github.com/LukeMathWalker/bunyan" target="_blank">bunyan</a> <strong>bunyan-rs</strong> supports files as input source and multiple formatting styles.</p>
 </div>
 
 <br />
@@ -52,7 +51,7 @@ bunyan tests/all/corpus/all.log
 ```
 
 
-## Limitations
+## Comparisons
 
 Compared to the original `bunyan` CLI, `bunyan-rs`:
 
@@ -62,6 +61,11 @@ Compared to the original `bunyan` CLI, `bunyan-rs`:
 - Only supports UTC format for time.
 
 Some of the above might or might not be added in the future.
+
+Compared to the original [bunyan](https://github.com/LukeMathWalker/bunyan) `bunyan-rs`:
+
+- supports files as input source
+- supports multiple formatting styles.
 
 
 ## Bunyan ecosystem in Rust

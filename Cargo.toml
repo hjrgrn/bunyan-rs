@@ -17,12 +17,11 @@ path = "src/lib.rs"
 name = "bunyan"
 
 [dependencies]
-clap = { version = "4.5.27", features = ["derive"] }
-anyhow = "1.0.95"
-serde = { version = "1.0.217", features = ["derive"] }
-serde_json = { version = "1.0.137", features = ["preserve_order"] }
-chrono = { version = "0.4.39", default-features = false, features = ["serde", "clock"] }
-atty = "0.2.14"
+clap = { version = "4.5.31", features = ["derive"] }
+anyhow = "1.0.96"
+serde = { version = "1.0.218", features = ["derive"] }
+serde_json = { version = "1.0.139", features = ["preserve_order"] }
+chrono = { version = "0.4.40", default-features = false, features = ["serde", "clock"] }
 colored = "3.0.0"
 itertools = "0.14.0"
 

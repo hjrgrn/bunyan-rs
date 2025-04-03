@@ -59,7 +59,7 @@ fn main() {
     // explicitly opted out.
     if cli.no_color {
         colored::control::set_override(false);
-    } else if cli.color || atty::is(atty::Stream::Stdout) {
+    } else if cli.color {
         colored::control::set_override(true);
     }
     match cli.file {

@@ -7,6 +7,7 @@ use serde_json::ser::PrettyFormatter;
 use serde_json::Serializer;
 use std::borrow::Cow;
 use std::convert::TryFrom;
+use std::fmt::Write;
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct LogRecord<'a> {
@@ -37,11 +38,14 @@ pub struct LogRecord<'a> {
 }
 
 impl<'a> LogRecord<'a> {
-    pub fn format(&self, format: Format) -> String {
+    pub fn format(&self, format: &Format, log: &mut String) {
         let level = format_level(self.level);
+        log.clear();
+        // TODO: decide what to do with error handling
         match format {
             Format::Long => {
-                format!(
+                let _ = write!(
+                    log,
                     "[{}] {}: {}/{} on {}: {}{}",
                     self.time.to_rfc3339_opts(SecondsFormat::Millis, true),
                     level,
@@ -50,28 +54,34 @@ impl<'a> LogRecord<'a> {
                     self.hostname,
                     self.message.cyan(),
                     format_extras(&self.extras)
-                )
+                );
             }
             Format::Short => {
-                format!(
+                let _ = write!(
+                    log,
                     "{} {} {}: {}{}",
                     self.time.format("%H:%M:%S%.3fZ"),
                     level,
                     self.name,
                     self.message.cyan(),
                     format_extras(&self.extras)
-                )
+                );
             }
-            Format::Json => serde_json::to_string_pretty(&self).expect("This should not happen"),
+            Format::Json => {
+                *log = serde_json::to_string_pretty(&self).expect("This should not happen")
+            }
             Format::JsonN(l) => {
-                let indent = " ".repeat(l.into());
+                let indent = " ".repeat(<u8 as Into<usize>>::into(*l));
                 let value = serde_json::to_value(&self).expect("This should not happen");
-                json_to_indented_string(&value, &indent)
+                *log = json_to_indented_string(&value, &indent);
             }
-            Format::Bunyan => format!(
-                "{}\n",
-                serde_json::to_string(&self).expect("This should not happen")
-            ),
+            Format::Bunyan => {
+                let _ = write!(
+                    log,
+                    "{}\n",
+                    serde_json::to_string(&self).expect("This should not happen")
+                );
+            }
         }
     }
 }
