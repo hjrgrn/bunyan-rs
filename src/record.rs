@@ -41,10 +41,9 @@ impl<'a> LogRecord<'a> {
     pub fn format(&self, format: &Format, log: &mut String) {
         let level = format_level(self.level);
         log.clear();
-        // TODO: decide what to do with error handling
         match format {
             Format::Long => {
-                let _ = write!(
+                if let Err(_) = write!(
                     log,
                     "[{}] {}: {}/{} on {}: {}{}",
                     self.time.to_rfc3339_opts(SecondsFormat::Millis, true),
@@ -54,10 +53,22 @@ impl<'a> LogRecord<'a> {
                     self.hostname,
                     self.message.cyan(),
                     format_extras(&self.extras)
-                );
+                ) {
+                    log.clear();
+                    *log = format!(
+                        "[{}] {}: {}/{} on {}: {}{}",
+                        self.time.to_rfc3339_opts(SecondsFormat::Millis, true),
+                        level,
+                        self.name,
+                        self.process_identifier,
+                        self.hostname,
+                        self.message.cyan(),
+                        format_extras(&self.extras)
+                    );
+                };
             }
             Format::Short => {
-                let _ = write!(
+                if let Err(_) = write!(
                     log,
                     "{} {} {}: {}{}",
                     self.time.format("%H:%M:%S%.3fZ"),
@@ -65,7 +76,17 @@ impl<'a> LogRecord<'a> {
                     self.name,
                     self.message.cyan(),
                     format_extras(&self.extras)
-                );
+                ) {
+                    log.clear();
+                    *log = format!(
+                        "{} {} {}: {}{}",
+                        self.time.format("%H:%M:%S%.3fZ"),
+                        level,
+                        self.name,
+                        self.message.cyan(),
+                        format_extras(&self.extras)
+                    );
+                };
             }
             Format::Json => {
                 *log = serde_json::to_string_pretty(&self).expect("This should not happen")
@@ -76,11 +97,17 @@ impl<'a> LogRecord<'a> {
                 *log = json_to_indented_string(&value, &indent);
             }
             Format::Bunyan => {
-                let _ = write!(
+                if let Err(_) = write!(
                     log,
                     "{}\n",
                     serde_json::to_string(&self).expect("This should not happen")
-                );
+                ) {
+                    log.clear();
+                    *log = format!(
+                        "{}\n",
+                        serde_json::to_string(&self).expect("This should not happen")
+                    )
+                };
             }
         }
     }
