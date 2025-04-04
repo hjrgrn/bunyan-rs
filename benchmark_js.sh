@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-cat $1 | npx bunyan
-cat $1 | npx bunyan -o short
-cat $1 | npx bunyan -o json-10
-cat $1 | npx bunyan -o bunyan
+npx bunyan -p benchmark_logs.txt
+npx bunyan -o short -p benchmark_logs.txt
+npx bunyan -o json-10 -p benchmark_logs.txt
+npx bunyan -o bunyan -p benchmark_logs.txt

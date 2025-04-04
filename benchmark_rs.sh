@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-cat ${1} | ./target/release/bunyan
-cat ${1} | ./target/release/bunyan -o short
-cat ${1} | ./target/release/bunyan -o json-10
-cat ${1} | ./target/release/bunyan -o bunyan
+./target/release/bunyan benchmark_logs.txt
+./target/release/bunyan -o short benchmark_logs.txt
+./target/release/bunyan -o json-10 benchmark_logs.txt
+./target/release/bunyan -o bunyan benchmark_logs.txt
