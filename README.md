@@ -90,9 +90,9 @@ cargo build --release
 - Benchmark!
 ```bash
 # bunyan JS
-time ./benchmark_js.sh benchmark_logs.txt
+time ./benchmark_js.sh
 # bunyan-rs
-time ./benchmark_rs.sh benchmark_logs.txt
+time ./benchmark_rs.sh
 ```
 
 The Rust code is highly non-optimised (we are allocating freely and wastefully!).
