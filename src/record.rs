@@ -131,42 +131,65 @@ pub fn format_level(level: u8) -> String {
 }
 
 pub fn format_extras(extra_fields: &serde_json::Map<String, serde_json::Value>) -> String {
-    let mut details = Vec::new();
-    let mut extras = Vec::new();
+    let mut details = String::new();
+    let mut extras = String::new();
+    let mut details_first_iter = true;
+    let mut stringfied = String::new();
+    let mut extras_first_iter = true;
+
     for (key, value) in extra_fields {
-        let stringified = if let serde_json::Value::String(s) = value {
+        if let serde_json::Value::String(s) = value {
             // Preserve strings unless they contain whitespaces/are empty
             // In that case, we want surrounding quotes.
             if s.contains(' ') || s.is_empty() {
-                format!("\"{}\"", s)
+                if let Err(_) = write!(&mut stringfied, "\"{}\"", s) {
+                    stringfied = format!("\"{}\"", s);
+                }
             } else {
-                s.to_owned()
+                if let Err(_) = write!(&mut stringfied, "{}", s) {
+                    stringfied = s.to_owned();
+                }
             }
         } else {
-            json_to_indented_string(value, "  ")
-        };
-
-        if stringified.contains('\n') || stringified.len() > 50 {
-            if let serde_json::Value::String(s) = value {
-                details.push(indent(&format!("{}: {}", key.bold(), s)));
-            } else {
-                details.push(indent(&format!("{}: {}", key.bold(), stringified)));
-            }
-        } else {
-            extras.push(format!("{}={}", key.bold(), stringified));
+            stringfied = json_to_indented_string(value, "  ");
         }
+
+        if stringfied.contains('\n') || stringfied.len() > 50 {
+            if details_first_iter {
+                details_first_iter = false;
+            } else {
+                details.push_str("\n    --\n");
+            }
+            if let serde_json::Value::String(s) = value {
+                details.push_str(&indent(&format!("{}: {}", key.bold(), s)));
+            } else {
+                details.push_str(&indent(&format!("{}: {}", key.bold(), stringfied)));
+            }
+        } else {
+            if extras_first_iter {
+                extras.push_str(" (");
+                extras_first_iter = false;
+            } else {
+                extras.push_str(",");
+            }
+
+            extras.push_str(&key.bold().to_string());
+            extras.push('=');
+            extras.push_str(&stringfied);
+        }
+        stringfied.clear();
     }
-    let formatted_details = if !details.is_empty() {
-        format!("{}\n", details.into_iter().join("\n    --\n"))
+    if !details_first_iter {
+        details.push('\n');
+    }
+    if !extras.is_empty() {
+        extras.push_str(")\n");
+        extras.push_str(&details);
     } else {
-        "".into()
-    };
-    let formatted_extras = if !extras.is_empty() {
-        format!(" ({})", extras.into_iter().join(","))
-    } else {
-        "".into()
-    };
-    format!("{}\n{}", formatted_extras, formatted_details)
+        extras.push_str("\n");
+        extras.push_str(&details);
+    }
+    extras
 }
 
 /// Serialize a JSON value to a string using the specified indentation.
