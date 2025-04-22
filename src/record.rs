@@ -37,13 +37,13 @@ pub struct LogRecord<'a> {
     pub extras: serde_json::Map<String, serde_json::Value>,
 }
 
-impl<'a> LogRecord<'a> {
+impl LogRecord<'_> {
     pub fn format(&self, format: &Format, log: &mut String) {
         let level = format_level(self.level);
         log.clear();
         match format {
             Format::Long => {
-                if let Err(_) = write!(
+                if write!(
                     log,
                     "[{}] {}: {}/{} on {}: {}{}",
                     self.time.to_rfc3339_opts(SecondsFormat::Millis, true),
@@ -53,7 +53,9 @@ impl<'a> LogRecord<'a> {
                     self.hostname,
                     self.message.cyan(),
                     format_extras(&self.extras)
-                ) {
+                )
+                .is_err()
+                {
                     log.clear();
                     *log = format!(
                         "[{}] {}: {}/{} on {}: {}{}",
@@ -68,7 +70,7 @@ impl<'a> LogRecord<'a> {
                 };
             }
             Format::Short => {
-                if let Err(_) = write!(
+                if write!(
                     log,
                     "{} {} {}: {}{}",
                     self.time.format("%H:%M:%S%.3fZ"),
@@ -76,7 +78,9 @@ impl<'a> LogRecord<'a> {
                     self.name,
                     self.message.cyan(),
                     format_extras(&self.extras)
-                ) {
+                )
+                .is_err()
+                {
                     log.clear();
                     *log = format!(
                         "{} {} {}: {}{}",
@@ -93,15 +97,17 @@ impl<'a> LogRecord<'a> {
             }
             Format::JsonN(l) => {
                 let indent = " ".repeat(<u8 as Into<usize>>::into(*l));
-                let value = serde_json::to_value(&self).expect("This should not happen");
+                let value = serde_json::to_value(self).expect("This should not happen");
                 *log = json_to_indented_string(&value, &indent);
             }
             Format::Bunyan => {
-                if let Err(_) = write!(
+                if writeln!(
                     log,
-                    "{}\n",
+                    "{}",
                     serde_json::to_string(&self).expect("This should not happen")
-                ) {
+                )
+                .is_err()
+                {
                     log.clear();
                     *log = format!(
                         "{}\n",
@@ -142,13 +148,11 @@ pub fn format_extras(extra_fields: &serde_json::Map<String, serde_json::Value>) 
             // Preserve strings unless they contain whitespaces/are empty
             // In that case, we want surrounding quotes.
             if s.contains(' ') || s.is_empty() {
-                if let Err(_) = write!(&mut stringfied, "\"{}\"", s) {
+                if write!(&mut stringfied, "\"{}\"", s).is_err() {
                     stringfied = format!("\"{}\"", s);
                 }
-            } else {
-                if let Err(_) = write!(&mut stringfied, "{}", s) {
-                    stringfied = s.to_owned();
-                }
+            } else if write!(&mut stringfied, "{}", s).is_err() {
+                stringfied = s.to_owned();
             }
         } else {
             stringfied = json_to_indented_string(value, "  ");
@@ -170,7 +174,7 @@ pub fn format_extras(extra_fields: &serde_json::Map<String, serde_json::Value>) 
                 extras.push_str(" (");
                 extras_first_iter = false;
             } else {
-                extras.push_str(",");
+                extras.push(',');
             }
 
             extras.push_str(&key.bold().to_string());
@@ -186,7 +190,7 @@ pub fn format_extras(extra_fields: &serde_json::Map<String, serde_json::Value>) 
         extras.push_str(")\n");
         extras.push_str(&details);
     } else {
-        extras.push_str("\n");
+        extras.push('\n');
         extras.push_str(&details);
     }
     extras
